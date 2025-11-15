@@ -4,7 +4,7 @@ const Header: React.FC = () => {
 	return (
 		<header className="text-center py-8 sm:py-12">
 			<h1
-				className="text-6xl sm:text-7xl md:text-8xl font-black uppercase text-slate-300 tracking-wider"
+				className="text-6xl sm:text-7xl md:text-8xl font-black text-slate-300 tracking-wider"
 				style={{
 					textShadow: `
             0 1px 0 #bbb,
@@ -20,7 +20,7 @@ const Header: React.FC = () => {
           `,
 				}}
 			>
-				LOCALM
+				LocaLM
 			</h1>
 			<p className="text-slate-400 mt-2 text-lg">
 				Your AI-Powered Legal Insight Partner
