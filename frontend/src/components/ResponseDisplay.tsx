@@ -15,7 +15,7 @@ const ResponseDisplay: React.FC<ResponseDisplayProps> = ({ isLoading, error, res
         <div className="flex flex-col items-center justify-center h-full text-slate-400">
            <div className="w-8 h-8 border-4 border-slate-500 border-t-cyan-400 rounded-full animate-spin mb-4"></div>
            <p className="text-lg">Generating response...</p>
-           <p className="text-sm">Please wait while LOCALM analyzes your query.</p>
+           <p className="text-sm">Please wait while LocaLM analyzes your query.</p>
         </div>
       );
     }

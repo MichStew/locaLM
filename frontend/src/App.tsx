@@ -19,6 +19,12 @@ const App: React.FC = () => {
 
 		try {
 			// Replace with your actual API endpoint
+			setIsLoading(true);
+			await new Promise((resolve) => setTimeout(resolve, 5000)); // Simulate network delay
+			setResponse(
+				'This is a placeholder response. The API integration is not yet implemented.'
+			);
+      setIsLoading(false);
 		} catch (e: unknown) {
 			if (e instanceof Error) {
 				setError(`An error occurred: ${e.message}`);
