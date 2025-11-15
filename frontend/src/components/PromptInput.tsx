@@ -28,7 +28,7 @@ const PromptInput: React.FC<PromptInputProps> = ({
 				value={prompt}
 				onChange={(e) => setPrompt(e.target.value)}
 				onKeyDown={handleKeyDown}
-				placeholder="Ask about a legal concept, case, or procedure..."
+				placeholder="What are the key considerations when drafting a non-compete clause for an employment contract in California?"
 				className="w-full h-24 p-4 pr-16 bg-slate-800 border border-slate-700 rounded-xl focus:ring-2 focus:ring-cyan-500 focus:outline-none transition duration-200 resize-none text-white placeholder-slate-500"
 				disabled={isLoading}
 			/>

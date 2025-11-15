@@ -46,7 +46,11 @@ const ResponseDisplay: React.FC<ResponseDisplayProps> = ({ isLoading, error, res
         }
         return <p key={index} className="my-2">{line}</p>;
       });
-      return <div className="prose prose-invert prose-p:text-slate-300 prose-headings:text-cyan-200 max-w-none">{formattedResponse}</div>;
+      return (
+			<div className="prose prose-invert prose-p:text-slate-300 prose-headings:text-cyan-200 p-8">
+				{formattedResponse}
+			</div>
+		);
     }
     
     return (
@@ -58,11 +62,7 @@ const ResponseDisplay: React.FC<ResponseDisplayProps> = ({ isLoading, error, res
     );
   };
 
-  return (
-    <div className="flex-grow p-6 overflow-y-auto">
-      {renderContent()}
-    </div>
-  );
+  return <div className={`p-6 overflow-y-scroll ${response.length > 1 ? 'max-h-[55vh]' : 'max-h-[35vh]'}`}>{renderContent()}</div>;
 };
 
 export default ResponseDisplay;
