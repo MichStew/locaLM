@@ -1,0 +1,28 @@
+# === Core ML Framework ===
+torch>=2.1.0       # CPU-only PyTorch (will auto-pick macOS wheel)
+transformers>=4.44
+datasets>=2.20
+accelerate>=0.33
+peft>=0.12
+safetensors>=0.4
+
+# === Retrieval / Embeddings (optional but useful) ===
+sentence-transformers>=3.0
+chromadb>=0.5
+faiss-cpu>=1.8
+
+# === Data handling ===
+pandas>=2.2
+pyarrow>=17.0
+
+# === PDF/Text ingestion ===
+pypdf>=5.0
+tqdm>=4.66
+
+# === Utility / Logging ===
+wandb>=0.17     # optional experiment tracking
+rich>=13.7      # nicer console output
+
+# === Compatibility for macOS (optional, safe to include) ===
+protobuf<5
+
