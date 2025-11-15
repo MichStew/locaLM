@@ -1,0 +1,3 @@
+node modules
+.env 
+#other stuff that shouldn't be on github
