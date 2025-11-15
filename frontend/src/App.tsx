@@ -73,12 +73,14 @@ This is a placeholder response. The API integration is not yet implemented.`
 		<div className="min-h-screen min-w-screen bg-slate-900 text-white flex flex-col items-center p-4 sm:p-6 font-sans">
 			<div className="w-[80%] flex flex-col h-full">
 				{response.length === 0 && <Header />}
-				<VectorDatabaseManager
-				// onBuild={handleBuildKnowledgeBase}
-				// isProcessing={isProcessingFiles}
-				// status={processingStatus}
-				// vectorCount={vectorStore.length}
-				/>
+		<div className={response.length === 0 ? "" : "mt-8"}>
+			<VectorDatabaseManager
+			// onBuild={handleBuildKnowledgeBase}
+			// isProcessing={isProcessingFiles}
+			// status={processingStatus}
+			// vectorCount={vectorStore.length}
+			/>
+		</div>
 				<main className="grow flex flex-col mt-4 bg-slate-800/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm border border-slate-700">
 					<ResponseDisplay
 						isLoading={isLoading}
