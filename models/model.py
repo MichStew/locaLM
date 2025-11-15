@@ -1,62 +1,82 @@
-import sys
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
-import configuration.json from ../data
+# build_jsonl_from_data.py
+import os, json, csv, glob
+from pathlib import Path
+from pypdf import PdfReader   # pypdf2 or pypdf
+import pandas as pd
 
-# -- Configure here --
-model_name = "HuggingFaceTB/SmolLM3-3B"   # your desired model
-fallback_model = "EleutherAI/gpt-neo-125M"  # smaller fallback that should run on CPU
-max_new_tokens = 256
-# ---------------------
+DATA_DIR = Path("../data")
+OUT_JSONL = Path("data/train.jsonl")
+OUT_CORPUS = Path("data/raw_corpus.txt")
 
-# choose device
-if torch.cuda.is_available():
-    device = "cuda"
-else:
-    device = "cpu"
-print(f"Using device: {device}")
+os.makedirs("data", exist_ok=True)
 
-def try_load(model_name, device):
+def read_pdf(path):
+    text = []
     try:
-        print(f"Loading tokenizer and model: {model_name} ...")
-        tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=True)
-        model = AutoModelForCausalLM.from_pretrained(model_name)
-        model.to(device)
-        print("Model loaded OK.")
-        return tokenizer, model
+        reader = PdfReader(path)
+        for p in reader.pages:
+            text.append(p.extract_text() or "")
     except Exception as e:
-        print(f"Failed to load {model_name}: {e}")
-        return None, None
+        print("PDF read error:", path, e)
+    return "\n".join(text).strip()
 
-tokenizer, model = try_load(model_name, device)
-if model is None:
-    print(f"Attempting fallback model: {fallback_model}")
-    tokenizer, model = try_load(fallback_model, device)
-    if model is None:
-        print("Fallback failed. You likely need to run on a machine with more RAM or use a smaller model.")
-        sys.exit(1)
+def collect_texts():
+    texts = []
+    for ext in ("*.jsonl", "*.txt", "*.md", "*.pdf", "*.csv"):
+        for p in DATA_DIR.glob(ext):
+            p = p.resolve()
+            try:
+                if p.suffix.lower() == ".jsonl":
+                    # take each line if it has prompt/completion
+                    with open(p, "r", encoding="utf-8") as fh:
+                        for line in fh:
+                            line=line.strip()
+                            if not line: continue
+                            try:
+                                obj = json.loads(line)
+                                # if it's already prompt/completion, write to out jsonl directly
+                                if "prompt" in obj and "completion" in obj:
+                                    with open(OUT_JSONL, "a", encoding="utf-8") as out:
+                                        out.write(json.dumps(obj, ensure_ascii=False) + "\n")
+                                    continue
+                            except:
+                                pass
+                            texts.append(line)
+                elif p.suffix.lower() in (".txt", ".md"):
+                    with open(p, "r", encoding="utf-8") as fh:
+                        texts.append(fh.read())
+                elif p.suffix.lower() == ".pdf":
+                    texts.append(read_pdf(str(p)))
+                elif p.suffix.lower() == ".csv":
+                    try:
+                        df = pd.read_csv(p)
+                        # join textual columns heuristically
+                        for _, row in df.iterrows():
+                            row_text = " ".join([str(v) for v in row.dropna().values])
+                            texts.append(row_text)
+                    except Exception as e:
+                        print("CSV read failed:", p, e)
+            except Exception as e:
+                print("Error reading", p, e)
+    return [t for t in texts if t and len(t.strip())>20]
 
-# Example prompt
-prompt = "Give me a brief explanation of gravity in simple terms."
-# your code used a chat template; if tokenizer implements apply_chat_template keep it, otherwise just use prompt
-if hasattr(tokenizer, "apply_chat_template"):
-    messages_think = [{"role": "user", "content": prompt}]
-    text = tokenizer.apply_chat_template(messages_think, tokenize=False, add_generation_prompt=True)
-else:
-    text = prompt
-
-# tokenize and send to device
-model_inputs = tokenizer([text], return_tensors="pt", truncation=True, max_length=2048)
-model_inputs = {k: v.to(device) for k, v in model_inputs.items()}
-
-# generate
-with torch.no_grad():
-    gen = model.generate(**model_inputs, max_new_tokens=max_new_tokens, do_sample=False)
-
-# decode relative to input length
-generated_ids = gen[0]
-input_len = model_inputs["input_ids"].shape[1]
-output_ids = generated_ids[input_len:]
-print("\n=== GENERATED ===\n")
-print(tokenizer.decode(output_ids, skip_special_tokens=True))
+if __name__ == "__main__":
+    texts = collect_texts()
+    print(f"Collected {len(texts)} documents from {DATA_DIR}")
+    # write corpus (for RAG)
+    with open(OUT_CORPUS, "w", encoding="utf-8") as f:
+        for t in texts:
+            f.write(t.replace("\n", " ") + "\n\n")
+    print("Wrote corpus to", OUT_CORPUS)
+    # If OUT_JSONL already has content (from included jsonl), we keep it. Otherwise create a few prompt/completion examples
+    if OUT_JSONL.exists():
+        print("train.jsonl existed or was appended to — check data/train.jsonl")
+    else:
+        # create simple QA pairs from each document: first 200 chars -> prompt, rest -> completion (quick heuristic)
+        with open(OUT_JSONL, "w", encoding="utf-8") as out:
+            for d in texts:
+                prompt = "Extract key points from the following document:\n\n" + d[:500] + "\n\n###\n"
+                completion = "Key points: " + (d[500:1200].strip() or " (summary omitted) ")
+                out.write(json.dumps({"prompt": prompt, "completion": completion}, ensure_ascii=False) + "\n")
+        print("Wrote synthetic train.jsonl with", len(texts), "examples")
 
