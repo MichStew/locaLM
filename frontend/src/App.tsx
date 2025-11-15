@@ -2,6 +2,7 @@ import React, { useState, useCallback } from 'react';
 import Header from './components/Header';
 import PromptInput from './components/PromptInput';
 import ResponseDisplay from './components/ResponseDisplay';
+import VectorDatabaseManager from './components/VectorDatabaseManager';
 
 const App: React.FC = () => {
 	const [prompt, setPrompt] = useState<string>('');
@@ -33,7 +34,13 @@ const App: React.FC = () => {
 		<div className="min-h-screen min-w-screen bg-slate-900 text-white flex flex-col items-center p-4 sm:p-6 font-sans">
 			<div className="w-[80%] flex flex-col h-full">
 				<Header />
-				<main className="grow flex flex-col bg-slate-800/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm border border-slate-700">
+				<VectorDatabaseManager
+					// onBuild={handleBuildKnowledgeBase}
+					// isProcessing={isProcessingFiles}
+					// status={processingStatus}
+					// vectorCount={vectorStore.length}
+				/>
+				<main className="grow flex flex-col mt-4 bg-slate-800/50 rounded-2xl shadow-2xl overflow-hidden backdrop-blur-sm border border-slate-700">
 					<ResponseDisplay
 						isLoading={isLoading}
 						error={error}
@@ -49,10 +56,7 @@ const App: React.FC = () => {
 					</div>
 				</main>
 				<footer className="text-center py-4 text-slate-500 text-xs">
-					<p>
-						For informational purposes only. Not
-						legal advice.
-					</p>
+					<p>For informational purposes only. Not legal advice.</p>
 				</footer>
 			</div>
 		</div>
