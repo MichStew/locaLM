@@ -3,6 +3,9 @@ import Header from './components/Header';
 import PromptInput from './components/PromptInput';
 import ResponseDisplay from './components/ResponseDisplay';
 
+const API_URL =
+	import.meta.env.VITE_API_URL || 'http://localhost:5000/api/ask';
+
 const App: React.FC = () => {
 	const [prompt, setPrompt] = useState<string>('');
 	const [response, setResponse] = useState<string>('');
@@ -17,7 +20,24 @@ const App: React.FC = () => {
 		setResponse('');
 
 		try {
-			// Replace with your actual API endpoint
+			const res = await fetch(API_URL, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ question: prompt }),
+			});
+
+			if (!res.ok) {
+				const text = await res.text();
+				throw new Error(
+					`API error (${res.status} ${res.statusText}): ${text}`,
+				);
+			}
+
+			const data = (await res.json()) as { answer?: string; error?: string };
+			if (data.error) {
+				throw new Error(data.error);
+			}
+			setResponse(data.answer?.trim() || 'No answer returned.');
 		} catch (e: unknown) {
 			if (e instanceof Error) {
 				setError(`An error occurred: ${e.message}`);
